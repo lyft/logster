@@ -52,14 +52,14 @@ class ApacheJsonLogster(LogsterParser):
         except KeyError:
             raise LogsterParsingException, "statusCode not found"
         name = "http.response.status.%s" % (status)
-        statsd.incr(name)
+        self.statsd.incr(name)
         if name in self.metrics:
             self.metrics[name].value += 1
         else:
             self.metrics[name] = MetricObject(name, 1)
 
         name_type = "http.response.status.%sxx" % (status[0])
-        statsd.incr(name_type)
+        self.statsd.incr(name_type)
         if name_type in self.metrics:
             self.metrics[name_type].value += 1
         else:
