@@ -57,7 +57,7 @@ from time import time
 from math import floor
 
 # Local dependencies
-sys.path.append(os.path.join(os.path.abspath( __file__ ), 'parsers'))
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'parsers'))
 from logster_helper import LogsterParsingException, LockingError
 
 # Globals
