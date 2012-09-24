@@ -50,7 +50,6 @@ import optparse
 import stat
 import logging.handlers
 import fcntl
-import requests
 import socket
 import subprocess
 import traceback
@@ -59,15 +58,14 @@ from time import time
 from math import floor
 
 # Local dependencies
-sys.path.append("/usr/share/logster")
-sys.path.append("./parsers")
+sys.path.append(os.path.join(os.path.abspath( __file__ ), 'parsers'))
 from logster_helper import LogsterParsingException, LockingError
 
 # Globals
 gmetric = "/usr/bin/gmetric"
 logtail = "/usr/sbin/logtail2"
-log_dir = os.path.abspath("./data")
-state_dir = os.path.abspath("./data")
+log_dir = os.path.abspath("/var/log/logster")
+state_dir = os.path.abspath("/var/lib/logster")
 
 script_start_time = time()
 
@@ -91,7 +89,7 @@ cmdline.add_option('--graphite-host', action='store',
 cmdline.add_option('--state-dir', '-s', action='store', default=state_dir,
                     help='Where to store the logtail state file.  Default location %s' % state_dir)
 cmdline.add_option('--output', '-o', action='append',
-                   choices=('graphite', 'ganglia', 'stdout', 'circonus'),
+                   choices=('graphite', 'ganglia', 'stdout'),
                    help="Where to send metrics (can specify multiple times). Choices are 'graphite', 'ganglia', or 'stdout'.")
 cmdline.add_option('--dry-run', '-d', action='store_true', default=False,
                     help='Parse the log file but send stats to standard output.')
@@ -152,8 +150,6 @@ def submit_stats(parser, duration, options):
         submit_graphite(metrics, options)
     if 'stdout' in options.output:
         submit_stdout(metrics, options)
-    if 'circonus' in options.output:
-        submit_circonus(metrics, options)
 
 def submit_stdout(metrics, options):
     for metric in metrics:
@@ -199,17 +195,6 @@ def submit_graphite(metrics, options):
 
     if (not options.dry_run):
         s.close()
-
-def submit_circonus(metrics, options):
-    payload = {}
-    for metric in metrics:
-        payload[metric.name] = metric.value
-    logger.debug("Circonus payload: %s" %(payload))
-    res = requests.put(
-        'https://trap.noit.circonus.net/module/httptrap/2a5c91a4-b277-e001-9b31-ac075efb87e4/myeHevsifIf8',
-        data=payload
-        )
-    logger.debug(res.status_code)
 
 def start_locking(lockfile_name):
     """ Acquire a lock via a provided lockfile filename. """
