@@ -88,8 +88,8 @@ cmdline.add_option('--graphite-host', action='store',
 cmdline.add_option('--state-dir', '-s', action='store', default=state_dir,
                     help='Where to store the logtail state file.  Default location %s' % state_dir)
 cmdline.add_option('--output', '-o', action='append',
-                   choices=('graphite', 'ganglia', 'stdout'),
-                   help="Where to send metrics (can specify multiple times). Choices are 'graphite', 'ganglia', or 'stdout'.")
+                   choices=('graphite', 'ganglia', 'stdout', 'statsd'),
+                   help="Where to send metrics (can specify multiple times). Choices are 'graphite', 'ganglia', 'statsd' or 'stdout'.")
 cmdline.add_option('--dry-run', '-d', action='store_true', default=False,
                     help='Parse the log file but send stats to standard output.')
 cmdline.add_option('--debug', '-D', action='store_true', default=False,
@@ -149,6 +149,8 @@ def submit_stats(parser, duration, options):
         submit_graphite(metrics, options)
     if 'stdout' in options.output:
         submit_stdout(metrics, options)
+    if 'statsd' in options.output:
+        submit_statsd(metrics, options)
 
 def submit_stdout(metrics, options):
     for metric in metrics:
@@ -194,6 +196,23 @@ def submit_graphite(metrics, options):
 
     if (not options.dry_run):
         s.close()
+
+def submit_statsd(metrics, options):
+    import statsd
+    statsd = statsd.StatsClient()
+    for metric in metrics:
+        metric_name = metric.name
+        if (options.metric_prefix != ""):
+            metric_name = options.metric_prefix + "." + metric_name
+        if (not options.dry_run):
+            if metric.type == 'counter':
+                statsd.incr(metric_name, metric.value)
+            elif metric.type == 'gauge':
+                statsd.gauge(metric_name, metric.value)
+            else:
+                logger.warn("Unknown type for %s: %s" % (metric_name, metric.type))
+        else:
+            print "%s.%s %s" % (metric_name, metric.type, metric.value)
 
 def start_locking(lockfile_name):
     """ Acquire a lock via a provided lockfile filename. """

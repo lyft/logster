@@ -23,8 +23,6 @@
 ###
 import json
 
-import statsd
-
 from logster_helper import MetricObject, LogsterParser
 from logster_helper import LogsterParsingException
 
@@ -34,7 +32,6 @@ class ApacheJsonLogster(LogsterParser):
         '''Initialize any data structures or variables needed for keeping track
         of the tasty bits we find in the log we are parsing.'''
         self.metrics = {}
-        self.statsd = statsd.StatsClient()
 
     def parse_line(self, line):
         '''This function should digest the contents of one line at a time,
@@ -52,18 +49,16 @@ class ApacheJsonLogster(LogsterParser):
         except KeyError:
             raise LogsterParsingException, "statusCode not found"
         name = "http.response.status.%s" % (status)
-        self.statsd.incr(name)
         if name in self.metrics:
             self.metrics[name].value += 1
         else:
-            self.metrics[name] = MetricObject(name, 1)
+            self.metrics[name] = MetricObject(name=name, value=1, type='counter')
 
         name_type = "http.response.status.%sxx" % (status[0])
-        self.statsd.incr(name_type)
         if name_type in self.metrics:
             self.metrics[name_type].value += 1
         else:
-            self.metrics[name_type] = MetricObject(name_type, 1)
+            self.metrics[name] = MetricObject(name=name, value=1, type='counter')
         
     def get_state(self, duration):
         '''Run any necessary calculations on the data collected from the logs
