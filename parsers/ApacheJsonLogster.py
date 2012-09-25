@@ -48,17 +48,20 @@ class ApacheJsonLogster(LogsterParser):
             status = str(data['statusCode'])
         except KeyError:
             raise LogsterParsingException, "statusCode not found"
-        name = "http.response.status.%s" % (status)
+        status_type = "%sxx" % (status[0])
+
+        name = "http.response.status.%s" % (status_type)
         if name in self.metrics:
             self.metrics[name].value += 1
         else:
             self.metrics[name] = MetricObject(name=name, value=1, type='counter')
 
-        name_type = "http.response.status.%sxx" % (status[0])
-        if name_type in self.metrics:
-            self.metrics[name_type].value += 1
+        name = "http.response.status.%s.%s" % (status_type, status)
+        if name in self.metrics:
+            self.metrics[name].value += 1
         else:
             self.metrics[name] = MetricObject(name=name, value=1, type='counter')
+
         
     def get_state(self, duration):
         '''Run any necessary calculations on the data collected from the logs
