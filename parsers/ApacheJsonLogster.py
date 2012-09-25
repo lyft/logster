@@ -35,6 +35,13 @@ class ApacheJsonLogster(LogsterParser):
             # Make sure we always report the number of 500 errors found
             "http.response.status.5xx.500": MetricObject(
                 name="http.response.status.5xx.500",
+                value=0, type='counter'),
+            "http.response.status.5xx": MetricObject(
+                name="http.response.status.5xx",
+                value=0, type='counter'),
+            # Always report the total number of requests
+            "http.request.total": MetricObject(
+                name="http.request.total",
                 value=0, type='counter')
         }
 
@@ -67,6 +74,7 @@ class ApacheJsonLogster(LogsterParser):
         else:
             self.metrics[name] = MetricObject(name=name, value=1, type='counter')
 
+        self.metrics["http.request.total"].value += 1
         
     def get_state(self, duration):
         '''Run any necessary calculations on the data collected from the logs
