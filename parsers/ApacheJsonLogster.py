@@ -31,7 +31,12 @@ class ApacheJsonLogster(LogsterParser):
     def __init__(self, option_string=None):
         '''Initialize any data structures or variables needed for keeping track
         of the tasty bits we find in the log we are parsing.'''
-        self.metrics = {}
+        self.metrics = {
+            # Make sure we always report the number of 500 errors found
+            "http.response.status.5xx.500": MetricObject(
+                name="http.response.status.5xx.500",
+                value=0, type='counter')
+        }
 
     def parse_line(self, line):
         '''This function should digest the contents of one line at a time,
