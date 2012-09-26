@@ -58,6 +58,8 @@ import yaml
 from time import time
 from math import floor
 
+script_start_time = time()
+
 # Local dependencies
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'parsers'))
 from logster_helper import LogsterParsingException, LockingError
@@ -69,7 +71,6 @@ log_dir = os.path.abspath("/var/log/logster")
 state_dir = os.path.abspath("/var/lib/logster")
 dfl_cfg_file = os.path.abspath('/etc/logster.yaml')
 
-script_start_time = time()
 
 # Command-line options and parsing.
 cmdline = optparse.OptionParser(usage="usage: %prog [options] parser logfile",
@@ -250,6 +251,7 @@ def end_locking(lockfile_fd, lockfile_name):
 
 
 def parse_log_file(log_file, class_name):
+    parse_log_start_time = time()
 
     logger.info("Executing parser %s on logfile %s" % (class_name, log_file))
     dirsafe_logfile = log_file.replace('/','-')
@@ -331,13 +333,13 @@ def parse_log_file(log_file, class_name):
         end_locking(lockfile, logtail_lock_file)
 
     # Log the execution time for this log file
-    exec_time = round(time() - script_start_time, 1)
+    exec_time = round(time() - parse_log_start_time, 1)
     logger.info("Total execution time for %s: %s seconds." % (log_file, exec_time))
 
     # Set mtime and atime for the state file to the startup time of the script
     # so that the cron interval is not thrown off by parsing a large number of
     # log entries.
-    os.utime(logtail_state_file, (floor(script_start_time), floor(script_start_time)))
+    os.utime(logtail_state_file, (floor(parse_log_start_time), floor(parse_log_start_time)))
 
     end_locking(lockfile, logtail_lock_file)
 
