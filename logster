@@ -265,7 +265,7 @@ def parse_log_file(log_file, class_name):
         parser = getattr(module, class_name)(option_string=options.parser_options)
     except Exception, e:
         print "Failed to instantiate parser (line %s): %s" % (lineno(), e)
-        sys.exit(1)
+        return
 
     # Check for lock file so we don't run multiple copies of the same parser 
     # simultaneuosly. This will happen if the log parsing takes more time than
@@ -274,7 +274,7 @@ def parse_log_file(log_file, class_name):
         lockfile = start_locking(logtail_lock_file)
     except LockingError, e:
         logger.warning("Failed to get lock. Is another instance of logster running?")
-        sys.exit(1)
+        return
 
     # Get input to parse.
     try:
@@ -299,7 +299,7 @@ def parse_log_file(log_file, class_name):
                 logger.warning('%s failed with exit code %s and output: %s'
                                % (e.cmd, e.returncode, e.output))
             end_locking(lockfile, logtail_lock_file)
-            sys.exit(0)
+            return
 
         # Open a pipe to read input from logtail.
         input = subprocess.Popen(logtail_cmd, stdout=subprocess.PIPE).stdout
@@ -313,7 +313,7 @@ def parse_log_file(log_file, class_name):
         print ("Failed to run %s to get log data (line %s): %s" %
                (" ".join(map(str, logtail_cmd)), lineno(), e))
         end_locking(lockfile, logtail_lock_file)
-        sys.exit(1)
+        return
 
     # Parse each line from input, then send all stats to their collectors.
     try:
