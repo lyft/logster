@@ -1,5 +1,4 @@
 import json
-import time
 
 from logster_helper import MetricObject, LogsterParser
 from logster_helper import LogsterParsingException
@@ -20,6 +19,10 @@ class AppJsonLogster(LogsterParser):
             7 : 'debug' 
         }
         self.metrics = {}
+        for name in self.criticality_names.values():
+            name = "app.events.crit.%s" % (name)
+            self.metrics[name] = MetricObject(
+                    name=name, value=0, type='counter')
         
     def parse_line(self, line):
         '''This function should digest the contents of one line at a time,
@@ -37,11 +40,11 @@ class AppJsonLogster(LogsterParser):
         except KeyError:
             raise LogsterParsingException, "criticality not found"
 
-        name = "app.events.crit.%s" % (self.criticality_name[level])
-        if name in self.metrics:
-            self.metrics[name].value += 1
+        if level not in self.criticality_names:
+            logger.warn("Unknown criticality level: %s" % (level))
         else:
-            self.metrics[name] = MetricObject(name=name, value=1, type='counter')
+            name = "app.events.crit.%s" % (self.criticality_names[level])
+            self.metrics[name].value += 1
 
     def get_state(self, duration):
         '''Run any necessary calculations on the data collected from the logs
