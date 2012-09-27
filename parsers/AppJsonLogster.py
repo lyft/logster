@@ -22,7 +22,9 @@ class AppJsonLogster(LogsterParser):
         for name in self.criticality_names.values():
             name = "app.events.crit.%s" % (name)
             self.metrics[name] = MetricObject(
-                    name=name, value=0, type='counter')
+                    name=name, value=0, type='gauge')
+        name = 'app.events.total'
+        self.metrics[name] = MetricObject(name=name, value=0, type='counter')
         
     def parse_line(self, line):
         '''This function should digest the contents of one line at a time,
@@ -45,6 +47,7 @@ class AppJsonLogster(LogsterParser):
         else:
             name = "app.events.crit.%s" % (self.criticality_names[level])
             self.metrics[name].value += 1
+        self.metrics['app.events.total'].value += 1
 
     def get_state(self, duration):
         '''Run any necessary calculations on the data collected from the logs

@@ -7,7 +7,7 @@ class HttpPhpErrorLogster(LogsterParser):
         of the tasty bits we find in the log we are parsing.'''
         self.phpErrorLinesMetric = MetricObject(name='http.php.errorLines',
                                                 value=0,
-                                                type='counter')
+                                                type='gauge')
         
     def parse_line(self, line):
         '''This function should digest the contents of one line at a time,

@@ -35,10 +35,10 @@ class ApacheJsonLogster(LogsterParser):
             # Make sure we always report the number of 500 errors found
             "http.response.status.5xx.500": MetricObject(
                 name="http.response.status.5xx.500",
-                value=0, type='counter'),
+                value=0, type='gauge'),
             "http.response.status.5xx": MetricObject(
                 name="http.response.status.5xx",
-                value=0, type='counter'),
+                value=0, type='gauge'),
             # Always report the total number of requests
             "http.request.total": MetricObject(
                 name="http.request.total",
