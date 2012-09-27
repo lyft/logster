@@ -23,8 +23,13 @@ class AppJsonLogster(LogsterParser):
             name = "app.events.crit.%s" % (name)
             self.metrics[name] = MetricObject(
                     name=name, value=0, type='gauge')
+        # the total number of events we've seen
         name = 'app.events.total'
         self.metrics[name] = MetricObject(name=name, value=0, type='counter')
+        # Store all emerg, alert, crit and err messages in one metric
+        # so that we don't have to add rules for each one of them
+        name = 'app.events.crit.allErrors'
+        self.metrics[name] = MetricObject(name=name, value=0, type='gauge')
         
     def parse_line(self, line):
         '''This function should digest the contents of one line at a time,
@@ -47,6 +52,10 @@ class AppJsonLogster(LogsterParser):
         else:
             name = "app.events.crit.%s" % (self.criticality_names[level])
             self.metrics[name].value += 1
+            # Store all emerg, alert, crit and err messages in one metric
+            # so that we don't have to add rules for each of them
+            if level <= 3:
+                self.metric['app.events.crit.allErrors'] += 1
         self.metrics['app.events.total'].value += 1
 
     def get_state(self, duration):
