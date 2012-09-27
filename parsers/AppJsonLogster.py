@@ -55,7 +55,7 @@ class AppJsonLogster(LogsterParser):
             # Store all emerg, alert, crit and err messages in one metric
             # so that we don't have to add rules for each of them
             if level <= 3:
-                self.metrics['app.events.crit.allErrors'] += 1
+                self.metrics['app.events.crit.allErrors'].value += 1
         self.metrics['app.events.total'].value += 1
 
     def get_state(self, duration):
