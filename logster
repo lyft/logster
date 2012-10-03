@@ -352,7 +352,10 @@ def parse_log_file(log_file, class_name):
 if __name__ == '__main__':
     cfg = yaml.load(open(options.cfg_file, 'r'))
     for log_file, parser_class_name in cfg['files'].items():
-        parse_log_file(log_file, parser_class_name)
+        if os.path.exists(log_file):
+            parse_log_file(log_file, parser_class_name)
+        else:
+            logger.warn("Log file %s doesn't exist. Skipping" % (log_file))
     # Log the execution time
     exec_time = round(time() - script_start_time, 1)
     logger.info("Total execution time: %s seconds." % exec_time)
